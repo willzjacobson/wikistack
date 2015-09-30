@@ -11,9 +11,11 @@ router.get("/", function(req, res, next) {
 router.post('/', function(req, res, next) {
   // STUDENT ASSIGNMENT:
   // add definitions for `title` and `content`
+  var tags = req.body.tags.replace(",", "").split(" ");
   var page = new Page({
     title: req.body.title,
     content: req.body.content,
+    tags: tags
     //urlTitle: req.body.title
   });
   // STUDENT ASSIGNMENT:
@@ -21,7 +23,7 @@ router.post('/', function(req, res, next) {
   // note: `.save` returns a promise or it can take a callback.
   page.save()
   .then(function(page) {
-  	res.json(page, null, 2);
+  	res.redirect(page.route);
 	});
 })
 
@@ -29,12 +31,26 @@ router.get("/add", function(req, res, next) {
 	res.render('addpage');
 })
 
+router.get("/search", function (req, res, next){
+	if (!req.query.tags) {
+		res.render('lookup');
+	} else {
+		var tags = req.query.tags.replace(" ","").split(",");
+		var desiredPages;
+		Page.findByTags(tags[0])
+		.then(function(pages) {
+			desiredPages = pages;
+			console.log("PAAAGES", pages, "DESSSSIRED", desiredPages);
+			res.render('lookup');
+		});
+	}
+})
+
 router.get('/:requestedUrl', function(req, res, next) {
 	var requestedUrl = req.params.requestedUrl;
 	Page.findOne({ urlTitle: requestedUrl}).exec()
 	.then(function(page) {
-		console.log("page", page);
-		res.render('wikipage', {title : page.title});
+		res.render('wikipage', {title : page.title, content: page.content, date: page.date.toString(), tags: page.tags});
 	})
 	.catch(next);
 })

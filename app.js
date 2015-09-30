@@ -1,8 +1,9 @@
 var express = require("express");
 var swig = require('swig');
-var routes = require('./routes');
+require('./filters')(swig);
 var bodyParser = require('body-parser');
 var app = express();
+var routes = require('./routes');
 var wikiRouter = require('./routes/wiki');
 
 //Rendering Stuff

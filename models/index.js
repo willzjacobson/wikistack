@@ -16,7 +16,8 @@ var pageSchema = new Schema ({
 	content: {type: String, required: true},
 	date: {type: Date, default: Date.now},
 	status: {type: String, enum: statuses}, 
-	author: {type: mongoose.Schema.Types.ObjectId, ref: 'User'}
+	author: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+	tags: [String]
 });
 
 var userSchema = new Schema ({
@@ -24,24 +25,25 @@ var userSchema = new Schema ({
 	email: {type: String, required: true, unique: true}
 });
 
-var Page = mongoose.model('Page', pageSchema);
-var User = mongoose.model('User', userSchema);
-
-
 pageSchema.virtual("route").get(function(){
 	return "/wiki/" + this.urlTitle;
 })
 
-pageSchema.pre('validate', function(next){
+pageSchema.pre('validate', function(moveOn){
   this.urlTitle = pageSchema.methods.makeUrlTitle(this.title);
   if (this.title == "") {
   	this.title = this.urlTitle;
   }
-  //console.log("URL TITLE!!!: " + this.urlTitle);
-  console.log("this: " + this);
-	next();
+	moveOn();
 });
 
+pageSchema.statics.findByTags = function(tags) {
+	return this.find({tags: {$elemMatch: { $eq: tags } } })
+	.exec();
+};
+
+var Page = mongoose.model('Page', pageSchema);
+var User = mongoose.model('User', userSchema);
 
 module.exports = {
 	Page: Page,
@@ -50,16 +52,21 @@ module.exports = {
 
 pageSchema.methods.makeUrlTitle = function (pageTitle) {
 	if (pageTitle) {
-		pageTitle = pageTitle.replace(/[^0-9a-z]/ig, "");
-		pageTitle = pageTitle.replace(" ", "_");
+		urlTitle = pageTitle.replace(/[^0-9a-z]/ig, "");
+		urlTitle = urlTitle.replace(" ", "_");
 	} else {
-		pageTitle = [];
+		urlTitle = [];
 		var arr = [0,1,2,3,4,5,6,7];
 		for (var i = 0; i < 7; i++) {
-			pageTitle.push(arr[Math.floor(Math.random()*8)]);
+			urlTitle.push(arr[Math.floor(Math.random()*8)]);
 		}
-		pageTitle = pageTitle.join("");
+		urlTitle = urlTitle.join("");
 	}
-	console.log(pageTitle);
-	return pageTitle;
+	return urlTitle;
 }
+
+
+
+
+
+
