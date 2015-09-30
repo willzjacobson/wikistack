@@ -46,6 +46,21 @@ router.get("/search", function (req, res, next){
 	}
 })
 
+router.get("/lookup", function (req, res, next){
+	if (!req.query.tags) {
+		res.render('lookup');
+	} else {
+		var tags = req.query.tags.replace(" ","").split(",");
+		var desiredPages;
+		Page.findByTags(tags[0])
+		.then(function(pages) {
+			desiredPages = pages;
+			console.log("PAAAGES", pages, "DESSSSIRED", desiredPages);
+			res.render('lookup');
+		});
+	}
+})
+
 router.get('/:requestedUrl', function(req, res, next) {
 	var requestedUrl = req.params.requestedUrl;
 	Page.findOne({ urlTitle: requestedUrl}).exec()
